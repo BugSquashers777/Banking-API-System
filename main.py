@@ -13,7 +13,7 @@ class Accounts(Resource):
 
     Methods:
         get(account_id): Retrieves information about a specific account.
-        post(account_id): Creates a new account, or optionally uses an existing account ID.
+        post(account_id): Creates a new account.
         put(account_id): Updates the information of a specific account.
         delete(account_id): Deletes a specific account.
     """
