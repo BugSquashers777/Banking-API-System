@@ -1,4 +1,3 @@
-# Backend-Daily
 
 # Banking API System
 
@@ -37,6 +36,15 @@ Below are example endpoints to get started:
 - **Flask** for the API framework.
 - **SQLite or MySQL** for the SQL database.
 - **SQLAlchemy** (optional) for ORM.
+- Run on terminal:
+```bash
+pip install -r requirements.txt
+```
+or 
+
+```bash
+pip3 install -r requirements.txt
+```
 
 ## Steps & Hints
 
