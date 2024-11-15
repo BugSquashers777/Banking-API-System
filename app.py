@@ -2,10 +2,43 @@ from flask import Flask, jsonify
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
 
+
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///accounts.db'  # SQLite database URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 api = Api(app)
 
-# API ENDPOINTS
+#-----------------------------------------DATABASE----------------------------------#
+
+# Define Account Model
+class Account(db.Model):
+    account_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    balance = db.Column(db.Float, default=0.0)
+
+    def __repr__(self):
+        return f"<Account {self.name}, {self.email}, Balance: {self.balance}>"
+
+# Define Transaction Model
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    account_id = db.Column(db.Integer, db.ForeignKey('account.account_id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    action = db.Column(db.String(10), nullable=False)
+
+    account = db.relationship('Account', backref='transactions')
+
+    def __repr__(self):
+        return f"<Transaction {self.action} {self.amount} for Account {self.account_id}>"
+
+# Create tables if they don't exist
+with app.app_context():
+    db.create_all()
+
+
+#-----------------------API ENDPOINTS---------------------------------------------------#
 
 class Accounts(Resource):
     """
