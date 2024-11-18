@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
 
@@ -61,19 +61,68 @@ class Accounts(Resource):
         Returns:
             dict: Account information, such as account details and balance.
         """
-        pass
+        # Query the account from database
+        account = Account.query.get(account_id)
+        
+        # Check if account exists
+        if not account:
+            return {'message': 'Account not found'}, 404
+            
+        # Return account information
+        return {
+            'account_id': account.account_id,
+            'name': account.name,
+            'email': account.email,
+            'balance': account.balance
+        }, 200
 
     def post(self, account_id=None):
         """
-        Creates a new account or updates an existing one if an account_id is provided.
+        Creates a new account.
 
         Args:
-            account_id (str, optional): The unique identifier for an existing account. Default is None for creating a new account.
+            account_id (str, optional): Not used, kept for API consistency.
 
         Returns:
-            dict: Information about the newly created or updated account.
+            dict: Information about the newly created account.
         """
-        pass
+        data = request.get_json()
+        
+        if not data or 'name' not in data or 'email' not in data:
+            return {'message': 'Missing required fields: name and email required'}, 400
+            
+        # Validate initial balance if provided
+        initial_balance = data.get('balance', 0.0)
+        if not isinstance(initial_balance, (int, float)) or initial_balance < 0:
+            return {'message': 'Balance must be a non-negative number'}, 400
+            
+        # Check if email already exists
+        if Account.query.filter_by(email=data['email']).first():
+            return {'message': 'Email already exists'}, 400
+            
+        # Create new account based on Account model fields
+        account = Account(
+            name=data['name'],
+            email=data['email'],
+            balance=initial_balance
+        )
+        db.session.add(account)
+            
+        try:
+            db.session.commit()
+            # Return the newly created account details along with a success message and 201 Created status
+            # Return 201 status code to indicate successful resource creation (new account)
+            return {
+                'account_id': account.account_id,
+                'name': account.name,
+                'email': account.email,
+                'balance': account.balance,
+                'message': 'Account created successfully'
+            }, 201
+        except Exception as e:
+            db.session.rollback()
+            # Return 500 Internal Server Error when database commit fails
+            return {'message': 'An error occurred while saving the account'}, 500
 
     def put(self, account_id):
         """
