@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Account - BugSquashers</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+    <h1>Delete Account</h1>
+    <p>Are you sure you want to delete your account? This action is irreversible and cannot be undone.</p>
+</header>
+
+<div class="container">
+    <div class="card">
+        <form id="delete_account_form">
+            <div class="form-group">
+                <label for="delete_account_id">Account ID:</label>
+                <input type="number" id="delete_account_id" placeholder="Enter Account ID" required>
+            </div>
+            <button type="button" class="button button-danger" onclick="openConfirmationModal()">Delete Account</button>
+        </form>
+
+        <div class="response" id="delete_response"></div>
+    </div>
+
+    <p><a href="index.html" class="button">Back to Home</a></p>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmationModal" class="modal">
+    <div class="modal-content">
+        <h2>Are you sure?</h2>
+        <p>This action is irreversible and cannot be undone.</p>
+        <div class="modal-buttons">
+            <button class="button" onclick="confirmDeletion()">Yes, delete it</button>
+            <button class="button button-secondary" onclick="closeConfirmationModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

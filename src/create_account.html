@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - BugSquashers</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+    <h1>Create New Account</h1>
+    <p>Fill in the details to create a new account.</p>
+</header>
+
+<div class="container">
+    <div class="card">
+        <form id="create_account_form">
+            <div class="form-group">
+                <label for="create_name">Name:</label>
+                <input type="text" id="create_name" placeholder="Enter Name" required>
+            </div>
+            <div class="form-group">
+                <label for="create_email">Email:</label>
+                <input type="email" id="create_email" placeholder="Enter Email" required>
+            </div>
+            <button type="button" class="button" onclick="createAccount()">Create Account</button>
+        </form>
+
+        <div class="response" id="create_response"></div>
+    </div>
+    
+    <p><a href="index.html" class="button">Back to Home</a></p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
