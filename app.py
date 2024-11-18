@@ -40,6 +40,32 @@ with app.app_context():
 
 #-----------------------API ENDPOINTS---------------------------------------------------#
 
+transactions_args = reqparse.RequestParser()
+transactions_args.add_argument("account_id", type=int, help="Account ID is required.", required=True)
+transactions_args.add_argument("amount", type=float, help="Amount is required.", required=True)
+
+# Helper Functions
+
+def get_account_or_404(account_id):
+    """
+    Helper function to retrieve an account or abort with 404 if not found.
+    """
+    account = Account.query.get(account_id)
+    if not account:
+        abort(404, message="Account not found")
+    return account
+
+def validate_transaction_action(action, amount, balance):
+    """
+    Helper function to validate the transaction action.
+    """
+    if action not in ['deposit', 'withdraw']:
+        abort(400, message="Invalid transaction action. Use 'deposit' or 'withdraw'.")
+    if action == 'withdraw' and amount > balance:
+        abort(406, message="Insufficient funds")
+    if amount <= 0:
+        abort(400, message="Amount must be greater than zero")
+
 class Accounts(Resource):
     """
     A class that handles operations related to user accounts.
@@ -101,25 +127,35 @@ class Accounts(Resource):
 
 
 class Transactions(Resource):
-    """
-    A class that handles transactions related to user accounts, such as deposits and withdrawals.
-
-    Methods:
-        post(action): Performs a transaction such as deposit or withdrawal.
-    """
-
     def post(self, action):
         """
         Processes a deposit or withdrawal transaction for an account.
-
-        Args:
-            action (str): The type of transaction, either 'deposit' or 'withdraw'.
-
-        Returns:
-            dict: The result of the transaction, including updated account balance or an error message.
         """
-        pass
+        args = transactions_args.parse_args()
+        account_id = args["account_id"]
+        amount = args["amount"]
 
+        # Fetch the account and validate the transaction
+        account = get_account_or_404(account_id)
+        validate_transaction_action(action, amount, account.balance)
+
+        # Create a new transaction
+        transaction = Transaction(account_id=account_id, amount=amount, action=action)
+        db.session.add(transaction)
+
+        # Update account balance
+        if action == 'deposit':
+            account.balance += amount
+        elif action == 'withdraw':
+            account.balance -= amount
+
+        db.session.commit()
+
+        return jsonify({
+            "message": f"{action.capitalize()} successful",
+            "account_id": account.account_id,
+            "balance": account.balance
+        })
 
 api.add_resource(Accounts, "/accounts", "/accounts/<int:account_id>")
 api.add_resource(Transactions, "/transactions/<string:action>")
