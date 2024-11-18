@@ -176,6 +176,13 @@ class Accounts(Resource):
 
 
 class Transactions(Resource):
+    """
+    A resource for handling financial transactions, such as deposits and withdrawals, for accounts.
+
+    Methods:
+        post(action: str): Processes a deposit or withdrawal transaction for an account based on the action.
+                           Returns a success message with the updated balance and account ID.
+    """
     def post(self, action):
         """
         Processes a deposit or withdrawal transaction for an account.
