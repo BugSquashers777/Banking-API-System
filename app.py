@@ -73,7 +73,10 @@ class Accounts(Resource):
         Returns:
             dict: Information about the newly created or updated account.
         """
-        pass
+        result = Account.query.filter_by(account_id=account_id).first()
+        if not result:
+            abort(404, message="Could not find account with that id")
+        return result
 
     def put(self, account_id):
         """
