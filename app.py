@@ -163,7 +163,7 @@ class Accounts(Resource):
         Returns:
             dict: Information about the updated account.
         """
-        pass
+        print("gets here")
 
     def delete(self, account_id):
         """
@@ -208,13 +208,18 @@ class Transactions(Resource):
         elif action == 'withdraw':
             account.balance -= amount
 
-        db.session.commit()
+        try:
+            db.session.commit()
 
-        return jsonify({
-            "message": f"{action.capitalize()} successful",
-            "account_id": account.account_id,
-            "balance": account.balance
-        })
+            return jsonify({
+                "message": f"{action.capitalize()} successful",
+                "account_id": account.account_id,
+                "balance": account.balance
+            }, 200)
+        except Exception as e:
+            db.session.rollback()
+            # Return 500 Internal Server Error when database commit fails
+            return {'message': 'An error occurred while updating transactions'}, 500
 
 api.add_resource(Accounts, "/accounts", "/accounts/<int:account_id>")
 api.add_resource(Transactions, "/transactions/<string:action>")

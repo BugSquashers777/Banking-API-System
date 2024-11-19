@@ -56,9 +56,9 @@ function processTransaction(action) {
     })
     .then(response => response.json())
     .then(data => {
-        if (response.ok){
+        if (data[1] === 200){
         const responseDiv = document.getElementById("transaction_response");
-        responseDiv.innerHTML = `${action.charAt(0).toUpperCase() + action.slice(1)} successful! New Balance: ${data.balance}`;
+        responseDiv.innerHTML = `${action.charAt(0).toUpperCase() + action.slice(1)} successful! New Balance: ${data[0].balance}`;
         responseDiv.className = 'response success';
         }
         else {
@@ -76,17 +76,16 @@ function updateAccount() {
     const accountId = document.getElementById("update_account_id").value;
     const name = document.getElementById("update_name").value;
     const email = document.getElementById("update_email").value;
-    const balance = parseFloat(document.getElementById("update_balance").value);
 
     fetch(`${apiUrl}/accounts/${accountId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, balance })
+        body: JSON.stringify({ name, email})
     })
     .then(response => response.json())
     .then(data => {
         const responseDiv = document.getElementById("update_response");
-        responseDiv.innerHTML = `Account updated: ${data.name}, Balance: ${data.balance}`;
+        responseDiv.innerHTML = `Account updated: ${data.name}, Balance: ${data.email}`;
         responseDiv.className = 'response success';
     })
     .catch(err => {
