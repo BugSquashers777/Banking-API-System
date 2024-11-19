@@ -134,7 +134,28 @@ class Accounts(Resource):
         Returns:
             dict: Information about the updated account.
         """
-        pass
+        data = request.get_json()
+        account = Account.query.filter_by(account_id=account_id).first()
+        if not account:
+            return {'message': 'Account not found'}, 404
+
+        if 'name' in data:
+            account.name = data['name']
+        if 'email' in data:
+            account.email = data['email']
+        if 'balance' in data:
+            if not isinstance(data['balance'], (int, float)) or data['balance'] < 0:
+                return {'message': 'Balance must be a non-negative number'}, 400
+            account.balance = data['balance']
+
+        db.session.commit()
+        return {
+            'account_id': account.account_id,
+            'name': account.name,
+            'email': account.email,
+            'balance': account.balance,
+            'message': 'Account updated successfully'
+        }, 200
 
     def delete(self, account_id):
         """
@@ -146,6 +167,13 @@ class Accounts(Resource):
         Returns:
             dict: Confirmation message or status about the deletion.
         """
+        account = Account.query.filter_by(account_id=account_id).first()
+        if not account:
+            return {'message': 'Account not found'}, 404
+
+        db.session.delete(account)
+        db.session.commit()
+        return {'message': 'Account deleted successfully'}, 200
         pass
 
 
