@@ -10,6 +10,7 @@ db = SQLAlchemy(app)
 api = Api(app)
 
 # Enable CORS for all routes
+
 CORS(app)  
 
 #-----------------------------------------DATABASE----------------------------------#
