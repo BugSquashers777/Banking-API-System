@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
-
+from flask_cors import CORS 
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///accounts.db'  # SQLite database URI
@@ -9,9 +9,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 api = Api(app)
 
+# Enable CORS for all routes
+
+CORS(app)  
+
 #-----------------------------------------DATABASE----------------------------------#
 
 # Define Account Model
+
 class Account(db.Model):
     account_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
@@ -22,6 +27,7 @@ class Account(db.Model):
         return f"<Account {self.name}, {self.email}, Balance: {self.balance}>"
 
 # Define Transaction Model
+
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     account_id = db.Column(db.Integer, db.ForeignKey('account.account_id'), nullable=False)
@@ -34,11 +40,68 @@ class Transaction(db.Model):
         return f"<Transaction {self.action} {self.amount} for Account {self.account_id}>"
 
 # Create tables if they don't exist
+
 with app.app_context():
     db.create_all()
 
+#-----------------------HELPER FUNCTIONS------------------------------------------------#
+
+def validate_email(data):
+    """
+        Helper function to retrieve an validate email abort with 404 if already exists.
+    """
+    if Account.query.filter_by(email=data['email']).first():
+            return {'message': 'Email already exists'}, 400
+
+def get_account_or_404(account_id):
+    """
+    Helper function to retrieve an account or abort with 404 if not found.
+    """
+    account = Account.query.get(account_id)
+    if not account:
+        abort(404, message="Account not found")
+    return account
+
+def validate_transaction_action(action, amount, balance):
+    """
+    Helper function to validate the transaction action.
+    """
+    if action not in ['deposit', 'withdraw']:
+        abort(400, message="Invalid transaction action. Use 'deposit' or 'withdraw'.")
+    if action == 'withdraw' and amount > balance:
+        abort(406, message="Insufficient funds")
+    if amount <= 0:
+        abort(400, message="Amount must be greater than zero")
+
+
 
 #-----------------------API ENDPOINTS---------------------------------------------------#
+
+transactions_args = reqparse.RequestParser()
+transactions_args.add_argument("account_id", type=int, help="Account ID is required.", required=True)
+transactions_args.add_argument("amount", type=float, help="Amount is required.", required=True)
+
+# Helper Functions
+
+def get_account_or_404(account_id):
+    """
+    Helper function to retrieve an account or abort with 404 if not found.
+    """
+    account = Account.query.get(account_id)
+    if not account:
+        abort(404, message="Account not found")
+    return account
+
+def validate_transaction_action(action, amount, balance):
+    """
+    Helper function to validate the transaction action.
+    """
+    if action not in ['deposit', 'withdraw']:
+        abort(400, message="Invalid transaction action. Use 'deposit' or 'withdraw'.")
+    if action == 'withdraw' and amount > balance:
+        abort(406, message="Insufficient funds")
+    if amount <= 0:
+        abort(400, message="Amount must be greater than zero")
 
 class Accounts(Resource):
     """
@@ -83,7 +146,8 @@ class Accounts(Resource):
         Args:
             account_id (str, optional): Not used, kept for API consistency.
 
-        Returns:
+        Returns:if Account.query.filter_by(email=data['email']).first():
+            return {'message': 'Email already exists'}, 400
             dict: Information about the newly created account.
         """
         data = request.get_json()
@@ -97,8 +161,7 @@ class Accounts(Resource):
             return {'message': 'Balance must be a non-negative number'}, 400
             
         # Check if email already exists
-        if Account.query.filter_by(email=data['email']).first():
-            return {'message': 'Email already exists'}, 400
+        validate_email(data)
             
         # Create new account based on Account model fields
         account = Account(
@@ -134,30 +197,38 @@ class Accounts(Resource):
         Returns:
             dict: Information about the updated account.
         """
-        data = request.get_json()
-        account = Account.query.filter_by(account_id=account_id).first()
-        if not account:
-            return {'message': 'Account not found'}, 404
+        account = get_account_or_404(account_id)
 
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'message': 'No data provided.'}, 400)
+        
         if 'name' in data:
             account.name = data['name']
         if 'email' in data:
+            validate_email(data)
             account.email = data['email']
-        if 'balance' in data:
-            if not isinstance(data['balance'], (int, float)) or data['balance'] < 0:
-                return {'message': 'Balance must be a non-negative number'}, 400
-            account.balance = data['balance']
-
-        db.session.commit()
-        return {
-            'account_id': account.account_id,
-            'name': account.name,
-            'email': account.email,
-            'balance': account.balance,
-            'message': 'Account updated successfully'
-        }, 200
+        try:
+            db.session.commit()
+            return {
+                'account_id': account.account_id,
+                'name': account.name,
+                'email': account.email,
+                'balance': account.balance,
+                'message': 'Account updated successfully'
+            }, 201
+        except Exception as e:
+            db.session.rollback()
+            # Return 500 Internal Server Error when database commit fails
+            return {'message': 'An error occurred while updating the account'}, 500
 
     def delete(self, account_id):
+        account = Account.query.get(account_id)
+        get_account_or_404(account_id)
+        del account[account_id]
+        return 204,{"message":"Account deleted"}
+        
         """
         Deletes a specific account.
 
@@ -179,24 +250,46 @@ class Accounts(Resource):
 
 class Transactions(Resource):
     """
-    A class that handles transactions related to user accounts, such as deposits and withdrawals.
+    A resource for handling financial transactions, such as deposits and withdrawals, for accounts.
 
     Methods:
-        post(action): Performs a transaction such as deposit or withdrawal.
+        post(action: str): Processes a deposit or withdrawal transaction for an account based on the action.
+                           Returns a success message with the updated balance and account ID.
     """
-
     def post(self, action):
         """
         Processes a deposit or withdrawal transaction for an account.
-
-        Args:
-            action (str): The type of transaction, either 'deposit' or 'withdraw'.
-
-        Returns:
-            dict: The result of the transaction, including updated account balance or an error message.
         """
-        pass
+        args = transactions_args.parse_args()
+        account_id = args["account_id"]
+        amount = args["amount"]
 
+        # Fetch the account and validate the transaction
+        account = get_account_or_404(account_id)
+        validate_transaction_action(action, amount, account.balance)
+
+        # Create a new transaction
+        transaction = Transaction(account_id=account_id, amount=amount, action=action)
+        db.session.add(transaction)
+
+        # Update account balance
+        if action == 'deposit':
+            account.balance += amount
+        elif action == 'withdraw':
+            account.balance -= amount
+
+        try:
+            db.session.commit()
+
+            return jsonify({
+                "message": f"{action.capitalize()} successful",
+                "account_id": account.account_id,
+                "balance": account.balance
+            }, 200)
+        except Exception as e:
+            db.session.rollback()
+            # Return 500 Internal Server Error when database commit fails
+            return {'message': 'An error occurred while updating transactions'}, 500
 
 api.add_resource(Accounts, "/accounts", "/accounts/<int:account_id>")
 api.add_resource(Transactions, "/transactions/<string:action>")

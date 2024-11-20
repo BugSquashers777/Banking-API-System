@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction - BugSquashers</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+    <h1>Deposit or Withdraw</h1>
+    <p>Choose a transaction type and enter the details below.</p>
+</header>
+
+<div class="container">
+    <div class="card">
+        <div class="form-group">
+            <label for="trans_account_id">Account ID:</label>
+            <input type="number" id="trans_account_id" placeholder="Enter Account ID" required>
+        </div>
+        <div class="form-group">
+            <label for="trans_amount">Amount:</label>
+            <input type="number" id="trans_amount" placeholder="Enter Amount" required>
+        </div>
+        <div class="buttons">
+            <button class="button" onclick="processTransaction('deposit')">Deposit</button>
+            <button class="button" onclick="processTransaction('withdraw')">Withdraw</button>
+        </div>
+
+        <div class="response" id="transaction_response"></div>
+    </div>
+    
+    <p><a href="index.html" class="button">Back to Home</a></p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
