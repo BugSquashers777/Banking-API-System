@@ -10,11 +10,13 @@ db = SQLAlchemy(app)
 api = Api(app)
 
 # Enable CORS for all routes
+
 CORS(app)  
 
 #-----------------------------------------DATABASE----------------------------------#
 
 # Define Account Model
+
 class Account(db.Model):
     account_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
@@ -25,6 +27,7 @@ class Account(db.Model):
         return f"<Account {self.name}, {self.email}, Balance: {self.balance}>"
 
 # Define Transaction Model
+
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     account_id = db.Column(db.Integer, db.ForeignKey('account.account_id'), nullable=False)
@@ -37,6 +40,7 @@ class Transaction(db.Model):
         return f"<Transaction {self.action} {self.amount} for Account {self.account_id}>"
 
 # Create tables if they don't exist
+
 with app.app_context():
     db.create_all()
 
