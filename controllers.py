@@ -1,4 +1,3 @@
-# controllers.py
 from models import db, Account, Transaction, validate_email, validate_transaction_action, get_account_or_404
 from flask import jsonify
 
