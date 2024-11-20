@@ -44,6 +44,36 @@ class Transaction(db.Model):
 with app.app_context():
     db.create_all()
 
+#-----------------------HELPER FUNCTIONS------------------------------------------------#
+
+def validate_email(data):
+    """
+        Helper function to retrieve an validate email abort with 404 if already exists.
+    """
+    if Account.query.filter_by(email=data['email']).first():
+            return {'message': 'Email already exists'}, 400
+
+def get_account_or_404(account_id):
+    """
+    Helper function to retrieve an account or abort with 404 if not found.
+    """
+    account = Account.query.get(account_id)
+    if not account:
+        abort(404, message="Account not found")
+    return account
+
+def validate_transaction_action(action, amount, balance):
+    """
+    Helper function to validate the transaction action.
+    """
+    if action not in ['deposit', 'withdraw']:
+        abort(400, message="Invalid transaction action. Use 'deposit' or 'withdraw'.")
+    if action == 'withdraw' and amount > balance:
+        abort(406, message="Insufficient funds")
+    if amount <= 0:
+        abort(400, message="Amount must be greater than zero")
+
+
 
 #-----------------------API ENDPOINTS---------------------------------------------------#
 
@@ -116,7 +146,8 @@ class Accounts(Resource):
         Args:
             account_id (str, optional): Not used, kept for API consistency.
 
-        Returns:
+        Returns:if Account.query.filter_by(email=data['email']).first():
+            return {'message': 'Email already exists'}, 400
             dict: Information about the newly created account.
         """
         data = request.get_json()
@@ -130,8 +161,7 @@ class Accounts(Resource):
             return {'message': 'Balance must be a non-negative number'}, 400
             
         # Check if email already exists
-        if Account.query.filter_by(email=data['email']).first():
-            return {'message': 'Email already exists'}, 400
+        validate_email(data)
             
         # Create new account based on Account model fields
         account = Account(
@@ -167,8 +197,31 @@ class Accounts(Resource):
         Returns:
             dict: Information about the updated account.
         """
-        print("gets here")
-    
+        account = get_account_or_404(account_id)
+
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'message': 'No data provided.'}, 400)
+        
+        if 'name' in data:
+            account.name = data['name']
+        if 'email' in data:
+            validate_email(data)
+            account.email = data['email']
+        try:
+            db.session.commit()
+            return {
+                'account_id': account.account_id,
+                'name': account.name,
+                'email': account.email,
+                'balance': account.balance,
+                'message': 'Account updated successfully'
+            }, 201
+        except Exception as e:
+            db.session.rollback()
+            # Return 500 Internal Server Error when database commit fails
+            return {'message': 'An error occurred while updating the account'}, 500
 
     def delete(self, account_id):
         account = Account.query.get(account_id)
