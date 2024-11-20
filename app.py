@@ -168,8 +168,14 @@ class Accounts(Resource):
             dict: Information about the updated account.
         """
         print("gets here")
+    
 
     def delete(self, account_id):
+        account = Account.query.get(account_id)
+        get_account_or_404(account_id)
+        del account[account_id]
+        return 204,{"message":"Account deleted"}
+        
         """
         Deletes a specific account.
 
