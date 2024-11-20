@@ -85,7 +85,7 @@ function updateAccount() {
     .then(response => response.json())
     .then(data => {
         const responseDiv = document.getElementById("update_response");
-        responseDiv.innerHTML = `Account updated: ${data.name}, Balance: ${data.email}`;
+        responseDiv.innerHTML = `Account updated: ${data.name}, Email: ${data.email}`;
         responseDiv.className = 'response success';
     })
     .catch(err => {
