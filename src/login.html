@@ -29,7 +29,7 @@
         width: 100%;
       }
     </style>
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
   </head>
   <body>
     <div
@@ -37,6 +37,17 @@
       style="height: 100vh"
     >
       <div class="card">
+        <div
+          id="login_response"
+          class="alert alert-danger position-fixed translate-middle"
+          style="
+            display: none;
+            top: 15%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20%;
+          "
+        ></div>
         <div class="card-body">
           <h1 class="text-center mb-4">Welcome Back</h1>
           <form>
