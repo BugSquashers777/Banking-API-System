@@ -5,13 +5,29 @@ import os
 db = SQLAlchemy()
 
 
+class User(db.Model):
+    user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), unique=True, nullable=False)
+
+    # User is now a foreign key on Account
+    account = db.relationship(
+        'Account', 
+        backref='user_ref',  # Unique backref name for the reverse relationship
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+
 class Account(db.Model):
     account_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)  # User is now a foreign key on Account
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     balance = db.Column(db.Float, default=0.0)
 
-    # Use a unique name for the backref to avoid conflicts
+    user = db.relationship('User', backref='account_ref')
+    # Account is now a foreign key on Transaction
     transactions = db.relationship(
         'Transaction', 
         backref='account_ref',  # Unique backref name for the reverse relationship
@@ -24,7 +40,7 @@ class Account(db.Model):
 
 class Transaction(db.Model):
     transaction_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    account_id = db.Column(db.Integer, db.ForeignKey('account.account_id'), nullable=False)
+    account_id = db.Column(db.Integer, db.ForeignKey('account.account_id'), nullable=False)  # Account is now a foreign key on Transaction
     amount = db.Column(db.Float, nullable=False)
     action = db.Column(db.String(10), nullable=False)
 
