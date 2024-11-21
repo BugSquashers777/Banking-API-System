@@ -1,38 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account - BugSquashers</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-
-<header>
-    <h1>Create New Account</h1>
-    <p>Fill in the details to create a new account.</p>
-</header>
-
-<div class="container">
-    <div class="card">
-        <form id="create_account_form">
-            <div class="form-group">
-                <label for="create_name">Name:</label>
-                <input type="text" id="create_name" placeholder="Enter Name" required>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Account</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 class="text-center mb-4">Create New Account</h1>
+      <div class="card">
+        <div class="card-body">
+          <form>
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" id="username" class="form-control" required />
             </div>
-            <div class="form-group">
-                <label for="create_email">Email:</label>
-                <input type="email" id="create_email" placeholder="Enter Email" required>
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" id="email" class="form-control" required />
             </div>
-            <button type="button" class="button" onclick="createAccount()">Create Account</button>
-        </form>
-
-        <div class="response" id="create_response"></div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input
+                type="password"
+                id="password"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <button
+                type="button"
+                onclick="createAccount()"
+                class="btn btn-success w-100"
+              >
+                Create Account
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-    
-    <p><a href="index.html" class="button">Back to Home</a></p>
-</div>
-
-<script src="script.js"></script>
-</body>
+  </body>
 </html>
