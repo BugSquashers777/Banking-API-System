@@ -96,10 +96,15 @@ function updateAccount() {
       responseDiv.innerHTML = `Account updated: ${data.name}, Balance: ${data.email}`;
       responseDiv.className = "response success";
     })
-    .catch((err) => {
-      document.getElementById("update_response").innerHTML =
-        "Error updating account: " + err.message;
-      document.getElementById("update_response").className = "response error";
+    .then(response => response.json())
+    .then(data => {
+        const responseDiv = document.getElementById("update_response");
+        responseDiv.innerHTML = `Account updated: ${data.name}, Email: ${data.email}`;
+        responseDiv.className = 'response success';
+    })
+    .catch(err => {
+        document.getElementById("update_response").innerHTML = "Error updating account: " + err.message;
+        document.getElementById("update_response").className = 'response error';
     });
 }
 
