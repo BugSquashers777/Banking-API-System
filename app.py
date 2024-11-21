@@ -81,27 +81,6 @@ transactions_args = reqparse.RequestParser()
 transactions_args.add_argument("account_id", type=int, help="Account ID is required.", required=True)
 transactions_args.add_argument("amount", type=float, help="Amount is required.", required=True)
 
-# Helper Functions
-
-def get_account_or_404(account_id):
-    """
-    Helper function to retrieve an account or abort with 404 if not found.
-    """
-    account = Account.query.get(account_id)
-    if not account:
-        abort(404, message="Account not found")
-    return account
-
-def validate_transaction_action(action, amount, balance):
-    """
-    Helper function to validate the transaction action.
-    """
-    if action not in ['deposit', 'withdraw']:
-        abort(400, message="Invalid transaction action. Use 'deposit' or 'withdraw'.")
-    if action == 'withdraw' and amount > balance:
-        abort(406, message="Insufficient funds")
-    if amount <= 0:
-        abort(400, message="Amount must be greater than zero")
 
 class Accounts(Resource):
     """
