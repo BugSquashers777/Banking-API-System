@@ -7,8 +7,8 @@
 
 body {
   font-family: "Arial", sans-serif;
-  background-color: #f4f4f9;
-  color: #333;
+  background-color: #333;
+  color: #fff;
   line-height: 1.6;
 }
 
@@ -37,11 +37,14 @@ p {
 
 /* Card-based layout */
 .card {
-  background: #fff;
+  background: #444;
   padding: 20px;
   margin: 20px 0;
   border-radius: 8px;
+  border: 1px solid #555;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 50%;
+  margin: 20px auto;
 }
 
 h2 {
@@ -62,9 +65,11 @@ label {
 input {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #666;
   border-radius: 6px;
   font-size: 1em;
+  background-color: #555;
+  color: #fff;
 }
 
 button {
@@ -108,7 +113,7 @@ button.button-danger:active {
 .response {
   margin-top: 20px;
   font-size: 1.1em;
-  color: #333;
+  color: #fff;
 }
 
 a.button {
@@ -123,7 +128,7 @@ a.button {
 }
 
 a.button:hover {
-  background-color: #133e87;
+  background-color: #608bc1;
 }
 
 a.button.button-danger {
@@ -149,7 +154,7 @@ a.button.button-danger:hover {
 }
 
 .modal-content {
-  background-color: #fff;
+  background-color: #444;
   margin: 5% auto;
   padding: 20px;
   border-radius: 8px;
