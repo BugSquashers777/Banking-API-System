@@ -44,8 +44,8 @@ class Auth(Resource):
         data = request.get_json()
         return create_login_account(data)
     def get(self):
-        data = request.get_json()
-        return login_validation(data)
+        args = request.args
+        return login_validation(args)
 
 api.add_resource(Auth, "/login", "/register")
 api.add_resource(Accounts, "/accounts", "/accounts/<int:account_id>")
