@@ -2,160 +2,139 @@
 const apiUrl = "http://localhost:5000"; // Change to your API URL if needed
 
 // Create Account
-function createAccount() {
-  const name = document.getElementById("create_name").value;
-  const email = document.getElementById("create_email").value;
+async function createAccount() {
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const balance = parseFloat(document.getElementById("initialBalance").value);
 
-  fetch(`${apiUrl}/accounts`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      const responseDiv = document.getElementById("create_response");
-      responseDiv.innerHTML = `Account created successfully! ID: ${data.account_id}, Balance: ${data.balance}`;
-      responseDiv.className = "response success";
-    })
-    .catch((err) => {
-      document.getElementById("create_response").innerHTML =
-        "Error creating account: " + err.message;
-      document.getElementById("create_response").className = "response error";
-    });
-}
-
-// Get Account Info
-function getAccountInfo() {
-  const accountId = document.getElementById("view_account_id").value;
-
-  fetch(`${apiUrl}/accounts/${accountId}`)
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.email === undefined) {
-        document.getElementById("account_info_response").innerHTML =
-          "Account not found or error occurred:";
-      } else {
-        const responseDiv = document.getElementById("account_info_response");
-        responseDiv.innerHTML = `Name: ${data.name}<br>Email: ${data.email}<br>Balance: ${data.balance}`;
-        responseDiv.className = "response success";
-      }
-    })
-    .catch((err) => {
-      document.getElementById("account_info_response").innerHTML =
-        "Account not found or error occurred: " + err.message;
-      document.getElementById("account_info_response").className =
-        "response error";
-    });
-}
-
-// Process Deposit or Withdrawal
-function processTransaction(action) {
-  const accountId = document.getElementById("trans_account_id").value;
-  const amount = parseFloat(document.getElementById("trans_amount").value);
-
-  fetch(`${apiUrl}/transactions/${action}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ account_id: accountId, amount }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data[1] === 200) {
-        const responseDiv = document.getElementById("transaction_response");
-        responseDiv.innerHTML = `${
-          action.charAt(0).toUpperCase() + action.slice(1)
-        } successful! New Balance: ${data[0].balance}`;
-        responseDiv.className = "response success";
-      } else {
-        document.getElementById("transaction_response").innerHTML =
-          "Error:" + data.message;
-      }
-    })
-    .catch((err) => {
-      document.getElementById("transaction_response").innerHTML =
-        "Error: " + err.message;
-      document.getElementById("transaction_response").className =
-        "response error";
-    });
-}
-
-// Update Account
-function updateAccount() {
-  const accountId = document.getElementById("update_account_id").value;
-  const name = document.getElementById("update_name").value;
-  const email = document.getElementById("update_email").value;
-
-  fetch(`${apiUrl}/accounts/${accountId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      const responseDiv = document.getElementById("update_response");
-      responseDiv.innerHTML = `Account updated: ${data.name}, Balance: ${data.email}`;
-      responseDiv.className = "response success";
-    })
-    .then((response) => response.json())
-    .then((data) => {
-      const responseDiv = document.getElementById("update_response");
-      responseDiv.innerHTML = `Account updated: ${data.name}, Email: ${data.email}`;
-      responseDiv.className = "response success";
-    })
-    .catch((err) => {
-      document.getElementById("update_response").innerHTML =
-        "Error updating account: " + err.message;
-      document.getElementById("update_response").className = "response error";
-    });
-}
-
-// Open the confirmation modal
-function openConfirmationModal() {
-  const accountId = document.getElementById("delete_account_id").value;
-
-  // Check if the account ID is provided
-  if (!accountId) {
-    document.getElementById("delete_response").textContent =
-      "Please enter an Account ID.";
+  if (!name || !email || balance < 0) {
+    document.getElementById("create_response").innerHTML =
+      "Invalid input: name and email are required, balance must be non-negative.";
+    document.getElementById("create_response").className = "response error";
     return;
   }
 
-  // Show the modal
-  document.getElementById("confirmationModal").style.display = "block";
-}
-
-// Close the confirmation modal
-function closeConfirmationModal() {
-  document.getElementById("confirmationModal").style.display = "none";
-}
-
-// Confirm the deletion
-async function confirmDeletion() {
-  const accountId = document.getElementById("delete_account_id").value;
-  const deleteResponseElement = document.getElementById("delete_response");
-
   try {
-    const response = await fetch(`${apiUrl}/accounts/${accountId}`, {
-      method: "DELETE",
+    const response = await fetch(`${apiUrl}/accounts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, balance }),
     });
 
-    if (response.ok) {
-      // Check if the status code is 2xx
-      // Successfully deleted the account
-      deleteResponseElement.textContent = "Account deleted successfully.";
-    } else {
-      // Account not found or other error
-      const data = await response.json(); // Optionally, get error message from the response
-      deleteResponseElement.textContent = data.message || "Account not found.";
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  } catch (error) {
-    // Handle network or other errors
-    deleteResponseElement.textContent =
-      "An error occurred while deleting the account. " + error;
+    const data = await response.json();
+    const responseDiv = document.getElementById("create_response");
+    responseDiv.innerHTML = `Account created successfully! ID: ${data.account_id}, Balance: ${data.balance}`;
+    responseDiv.className = "response success";
+  } catch (err) {
+    document.getElementById("create_response").innerHTML =
+      "Error creating account: " + err.message;
+    document.getElementById("create_response").className = "response error";
+  }
+}
+
+// Get Account Info
+async function getAccountInfo() {
+  const email = localStorage.getItem("email");
+
+  try {
+    const response = await fetch(`${apiUrl}/accounts/${email}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    const responseDiv = document.getElementById("account_info_response");
+    responseDiv.innerHTML = `Name: ${data.name}<br>Email: ${data.email}<br>Balance: ${data.balance}`;
+    responseDiv.className = "response success";
+  } catch (err) {
+    document.getElementById("account_info_response").innerHTML =
+      "Account not found or error occurred: " + err.message;
+    document.getElementById("account_info_response").className =
+      "response error";
+  }
+}
+
+// Process Transaction
+async function processTransaction(action) {
+  const accountId = document.getElementById("trans_account_id").value;
+  const amount = parseFloat(document.getElementById("trans_amount").value);
+
+  try {
+    const response = await fetch(`${apiUrl}/transactions/${action}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ account_id: accountId, amount }),
+    });
+    const data = await response.json();
+
+    if (data[1] === 200) {
+      const responseDiv = document.getElementById("transaction_response");
+      responseDiv.innerHTML = `${
+        action.charAt(0).toUpperCase() + action.slice(1)
+      } successful! New Balance: ${data[0].balance}`;
+      responseDiv.className = "response success";
+    } else {
+      document.getElementById("transaction_response").innerHTML =
+        "Error:" + data.message;
+    }
+  } catch (err) {
+    document.getElementById("transaction_response").innerHTML =
+      "Error: " + err.message;
+    document.getElementById("transaction_response").className =
+      "response error";
+  }
+}
+
+// Update Account
+async function updateAccount() {
+  // Get elements
+  const accountIdElement = document.getElementById("update_account_id");
+  const nameElement = document.getElementById("update_name");
+  const emailElement = document.getElementById("update_email");
+  const responseDiv = document.getElementById("update_response");
+
+  // Get values
+  const accountId = accountIdElement.value;
+  const name = nameElement.value;
+  const email = emailElement.value;
+
+  // Validate required fields
+  if (!accountId || !name || !email) {
+    responseDiv.innerHTML = "Please fill in all required fields";
+    responseDiv.className = "response error";
+    return;
   }
 
-  // Close the modal after confirmation
-  closeConfirmationModal();
+  try {
+    const response = await fetch(
+      `${apiUrl}/accounts/${localStorage.getItem("email")}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    localStorage.setItem("email", data.email);
+
+    const response_user = await fetch(`${apiUrl}/login/${email}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    responseDiv.innerHTML = `Account updated: ${data.name}, Email: ${data.email}`;
+    responseDiv.className = "response success";
+  } catch (err) {
+    responseDiv.innerHTML = "Error updating account: " + err.message;
+    responseDiv.className = "response error";
+  }
 }
 
 async function userLogin() {
@@ -169,19 +148,18 @@ async function userLogin() {
 
     if (response.ok) {
       const data = await response.json();
-      console.log(data);
       localStorage.setItem("loggedIn", "true");
       localStorage.setItem("username", data.username);
+      localStorage.removeItem("email");
+      localStorage.setItem("email", data.email);
       window.location.href = "index.html";
     } else {
       const data = await response.json();
-      console.log(data);
       document.getElementById("login_response").style.display = "block";
       document.getElementById("login_response").textContent =
         data.message || "Invalid credentials.";
     }
   } catch (error) {
-    console.log(error);
     document.getElementById("login_response").textContent =
       "An error occurred while logging in. " + error;
   }
@@ -217,5 +195,46 @@ async function userRegister() {
 function userLogout() {
   localStorage.removeItem("loggedIn");
   localStorage.removeItem("username");
+  localStorage.removeItem("email");
   window.location.href = "login.html";
+}
+
+function confirmDeletion() {
+  const result = confirm("Are you sure you want to delete your account?");
+  if (result) {
+    deleteAccount();
+  } else {
+    const deleteModal = bootstrap.Modal.getInstance(
+      document.getElementById("deleteModal")
+    );
+    deleteModal.hide();
+  }
+}
+
+async function deleteAccount() {
+  const accountId = document.getElementById("delete_account_id").value;
+
+  try {
+    const response = await fetch(`${apiUrl}/accounts/${accountId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const responseDiv = document.getElementById("delete_response");
+    responseDiv.innerHTML = "Account deleted successfully!";
+    responseDiv.className = "response success";
+
+    // Log out user after successful deletion
+    setTimeout(() => {
+      userLogout();
+    }, 2000);
+  } catch (err) {
+    document.getElementById("delete_response").innerHTML =
+      "Error deleting account: " + err.message;
+    document.getElementById("delete_response").className = "response error";
+  }
 }
