@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
 from models import db,create_db_if_not_exists
-from controllers import create_account, update_account, delete_account, get_account, process_transaction
+from controllers import create_account, update_account, delete_account, get_account, process_transaction, create_login_account, login_validation
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///accounts.db'
@@ -39,6 +39,15 @@ class Transactions(Resource):
         amount = args["amount"]
         return process_transaction(action, account_id, amount)
 
+class Auth(Resource):
+    def post(self):
+        data = request.get_json()
+        return create_login_account(data)
+    def get(self):
+        data = request.get_json()
+        return login_validation(data)
+
+api.add_resource(Auth, "/login", "/register")
 api.add_resource(Accounts, "/accounts", "/accounts/<int:account_id>")
 api.add_resource(Transactions, "/transactions/<string:action>")
 
