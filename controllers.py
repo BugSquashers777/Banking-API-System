@@ -29,15 +29,15 @@ def create_login_account(data):
     db.session.add(user_account)
     try:
         db.session.commit()
-        return {
+        return jsonify({
             'account_id': user_account.account_id,
             'username': user_account.username,
             'email': user_account.email,
             'message': 'Account created successfully'
-        }, 201
-    except Exception:
+        }, 201)
+    except Exception as e:
         db.session.rollback()
-        return {'message': 'An error occurred while saving the account'}, 500
+        return jsonify({'message': 'An error occurred while saving the account'}, 500)
 
 def login_validation(data):
     if not data or 'username' not in data or 'password' not in data:
