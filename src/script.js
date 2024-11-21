@@ -96,15 +96,16 @@ function updateAccount() {
       responseDiv.innerHTML = `Account updated: ${data.name}, Balance: ${data.email}`;
       responseDiv.className = "response success";
     })
-    .then(response => response.json())
-    .then(data => {
-        const responseDiv = document.getElementById("update_response");
-        responseDiv.innerHTML = `Account updated: ${data.name}, Email: ${data.email}`;
-        responseDiv.className = 'response success';
+    .then((response) => response.json())
+    .then((data) => {
+      const responseDiv = document.getElementById("update_response");
+      responseDiv.innerHTML = `Account updated: ${data.name}, Email: ${data.email}`;
+      responseDiv.className = "response success";
     })
-    .catch(err => {
-        document.getElementById("update_response").innerHTML = "Error updating account: " + err.message;
-        document.getElementById("update_response").className = 'response error';
+    .catch((err) => {
+      document.getElementById("update_response").innerHTML =
+        "Error updating account: " + err.message;
+      document.getElementById("update_response").className = "response error";
     });
 }
 
@@ -162,6 +163,36 @@ async function userLogin() {
   const password = document.getElementById("password").value;
 
   try {
+    const response = await fetch(
+      `${apiUrl}/login?username=${username}&password=${password}`
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(data);
+      localStorage.setItem("loggedIn", "true");
+      localStorage.setItem("username", data.username);
+      window.location.href = "index.html";
+    } else {
+      const data = await response.json();
+      console.log(data);
+      document.getElementById("login_response").style.display = "block";
+      document.getElementById("login_response").textContent =
+        data.message || "Invalid credentials.";
+    }
+  } catch (error) {
+    console.log(error);
+    document.getElementById("login_response").textContent =
+      "An error occurred while logging in. " + error;
+  }
+}
+
+async function userRegister() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  const email = document.getElementById("email").value;
+
+  try {
     const response = await fetch(`${apiUrl}/login`, {
       method: "POST",
       headers: {
@@ -169,27 +200,21 @@ async function userLogin() {
       },
       body: JSON.stringify({
         username: username,
+        email: email,
         password: password,
       }),
     });
 
     if (response.ok) {
-      const data = await response.json();
-      localStorage.setItem("loggedIn", "true");
-      localStorage.setItem("username", data.username);
-      window.location.href = "index.html";
-    } else {
-      const data = await response.json();
-      document.getElementById("login_response").textContent =
-        data.message || "Invalid credentials.";
+      window.location.href = "login.html";
     }
   } catch (error) {
-    document.getElementById("login_response").textContent =
+    document.getElementById("register_error").textContent =
       "An error occurred while logging in. " + error;
   }
 }
 
-async function userLogout() {
+function userLogout() {
   localStorage.removeItem("loggedIn");
   localStorage.removeItem("username");
   window.location.href = "login.html";
