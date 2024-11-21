@@ -14,11 +14,10 @@ def get_account(account_id):
     }, 200
 
 def create_login_account(data):
-    if not data or 'password' not in data or 'email' not in data or 'username' not in data:
-        return {'message': 'Missing required fields: username, email and password required'}, 400
     
     if not validate_email(data):
         return {'message': 'Email already exists'}, 400
+    
     
     user_account = User(
         username=data['username'],
@@ -40,6 +39,7 @@ def create_login_account(data):
         return jsonify({'message': 'An error occurred while saving the account'}, 500)
 
 def login_validation(data):
+    
     if not data or 'username' not in data or 'password' not in data:
         return {'message': 'Missing required fields: username and password required'}, 400
     
@@ -47,10 +47,7 @@ def login_validation(data):
     if not user:
         return {'message': 'Invalid username'}, 401
     
-    if user.password != data['password']:
-        return {'message': 'Invalid password'}, 401
-    
-    return {'message': 'Login successful'}, 200
+    return user.password
 
 
 def create_account(data):
