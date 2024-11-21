@@ -54,7 +54,8 @@ def create_db_if_not_exists(app):
     # Check if the database file exists (assuming SQLite in this case)
     if not os.path.exists('accounts.db'):
         print("Database does not exist. Creating a new one...")
-        db.create_all(app=app)
+        with app.app_context():
+            db.create_all()
 
 
 # Helper Functions
