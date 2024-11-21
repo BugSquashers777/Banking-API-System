@@ -1,4 +1,4 @@
-from models import db, Account, Transaction, validate_email, validate_transaction_action, get_account_or_404
+from models import db, Account, Transaction, User, validate_email, validate_transaction_action, get_account_or_404
 from flask import jsonify
 
 
@@ -12,6 +12,45 @@ def get_account(account_id):
         'email': account.email,
         'balance': account.balance
     }, 200
+
+def create_login_account(data):
+    if not data or 'password' not in data or 'email' not in data or 'username' not in data:
+        return {'message': 'Missing required fields: username, email and password required'}, 400
+    
+    if not validate_email(data):
+        return {'message': 'Email already exists'}, 400
+    
+    user_account = User(
+        username=data['username'],
+        email=data['email'],
+        password=data['password']
+    )
+    
+    db.session.add(user_account)
+    try:
+        db.session.commit()
+        return {
+            'account_id': user_account.account_id,
+            'username': user_account.username,
+            'email': user_account.email,
+            'message': 'Account created successfully'
+        }, 201
+    except Exception:
+        db.session.rollback()
+        return {'message': 'An error occurred while saving the account'}, 500
+
+def login_validation(data):
+    if not data or 'username' not in data or 'password' not in data:
+        return {'message': 'Missing required fields: username and password required'}, 400
+    
+    user = User.query.filter_by(username=data['username']).first()
+    if not user:
+        return {'message': 'Invalid username'}, 401
+    
+    if user.password != data['password']:
+        return {'message': 'Invalid password'}, 401
+    
+    return {'message': 'Login successful'}, 200
 
 
 def create_account(data):
