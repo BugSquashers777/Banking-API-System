@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="styles.css" />
     <script src="script.js"></script>
   </head>
-  <body>
+  <body class="bg-dark">
     <div class="container mt-5">
       <div class="row mb-4">
         <div class="col-md-12 text-end">
@@ -31,35 +31,392 @@
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">Transactions</h5>
-              <a href="transaction.html" class="btn btn-primary mb-2"
-                >View Transactions</a
+              <button
+                type="button"
+                class="btn btn-primary mb-2"
+                data-bs-toggle="modal"
+                data-bs-target="#viewTransactionsModal"
               >
+                View Transactions
+              </button>
+              <button
+                type="button"
+                class="btn btn-success mb-2"
+                data-bs-toggle="modal"
+                data-bs-target="#transactionModal"
+              >
+                Process Transaction
+              </button>
             </div>
           </div>
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">Account Management</h5>
-              <a href="view_account.html" class="btn btn-primary mb-2"
-                >View Account</a
+              <button
+                type="button"
+                class="btn btn-primary mb-2"
+                data-bs-toggle="modal"
+                data-bs-target="#viewAccountModal"
               >
-              <a href="update_account.html" class="btn btn-secondary mb-2"
-                >Update Account</a
+                View Account
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary mb-2"
+                data-bs-toggle="modal"
+                data-bs-target="#updateModal"
               >
-              <a href="delete_account.html" class="btn btn-danger mb-2"
-                >Delete Account</a
+                Update Account
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger mb-2"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteModal"
               >
+                Delete Account
+              </button>
             </div>
           </div>
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">Create Account</h5>
-              <a href="create_account.html" class="btn btn-success mb-2"
-                >Create New Account</a
+              <button
+                type="button"
+                class="btn btn-success mb-2"
+                data-bs-toggle="modal"
+                data-bs-target="#createAccountModal"
               >
+                Create New Account
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- View Account Modal -->
+    <div class="modal fade" id="viewAccountModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Account Details</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div id="account_info_response"></div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      document
+        .getElementById("viewAccountModal")
+        .addEventListener("show.bs.modal", function () {
+          getAccountInfo();
+        });
+    </script>
+
+    <!-- View Transactions Modal -->
+    <div class="modal fade" id="viewTransactionsModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Transaction History</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div id="transactions_list">
+              <!-- Transaction history will be populated here -->
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Process Transaction Modal -->
+    <div class="modal fade" id="transactionModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Process Transaction</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="trans_account_id" class="form-label"
+                >Account ID</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="trans_account_id"
+                style="background-color: #808080; color: black"
+                disabled
+              />
+            </div>
+            <div class="mb-3">
+              <label for="available_balance" class="form-label"
+                >Available Balance</label
+              >
+              <input
+                type="number"
+                class="form-control"
+                id="available_balance"
+                style="background-color: #808080; color: black"
+                disabled
+              />
+            </div>
+            <div class="mb-3">
+              <label for="trans_amount" class="form-label">Amount</label>
+              <input
+                type="number"
+                class="form-control"
+                id="trans_amount"
+                min="0"
+                style="background-color: #808080; color: black"
+              />
+            </div>
+            <div id="transaction_response"></div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-success"
+              onclick="processTransaction('deposit')"
+            >
+              Deposit
+            </button>
+            <button
+              type="button"
+              class="btn btn-warning"
+              onclick="processTransaction('withdraw')"
+            >
+              Withdraw
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Account Modal -->
+    <div class="modal fade" id="updateModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Update Account</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="update_account_id" class="form-label"
+                >Account ID</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="update_account_id"
+                style="background-color: #808080; color: black"
+                disabled
+              />
+            </div>
+            <div class="mb-3">
+              <label for="update_name" class="form-label">Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="update_name"
+                style="background-color: #808080; color: black"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="update_email" class="form-label">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="update_email"
+                style="background-color: #808080; color: black"
+              />
+            </div>
+            <div id="update_response"></div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="updateAccount()"
+            >
+              Update
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Delete Account</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="delete_account_id" class="form-label"
+                >Account ID</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="delete_account_id"
+                style="background-color: #808080; color: black"
+                disabled
+              />
+            </div>
+            <div id="delete_response"></div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-danger"
+              onclick="confirmDeletion()"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Account Modal -->
+    <div class="modal fade" id="createAccountModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Create New Account</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="name" class="form-label">Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                style="background-color: #808080; color: black"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                disabled
+                style="background-color: #808080; color: black"
+              />
+              <script>
+                document.getElementById("email").value =
+                  localStorage.getItem("email");
+              </script>
+            </div>
+            <div class="mb-3">
+              <label for="initialBalance" class="form-label"
+                >Initial Balance</label
+              >
+              <input
+                type="number"
+                class="form-control"
+                id="initialBalance"
+                min="0"
+                step="1.50"
+                style="background-color: #808080; color: black"
+              />
+            </div>
+            <div id="create_response"></div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-success"
+              onclick="createAccount()"
+            >
+              Create
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize Bootstrap modals properly
+        const modals = document.querySelectorAll(".modal");
+        modals.forEach((modal) => {
+          new bootstrap.Modal(modal, {
+            backdrop: "static",
+            keyboard: true,
+          });
+        });
+      });
+      document.addEventListener("DOMContentLoaded", async () => {
+        const email = localStorage.getItem("email");
+        const response = await fetch(`${apiUrl}/accounts/${email}`);
+        const data = await response.json();
+        document.getElementById("update_account_id").value = data.account_id;
+        document.getElementById("update_email").value = data.email;
+        document.getElementById("update_name").value = data.name;
+        document.getElementById("delete_account_id").value = data.account_id;
+        document.getElementById("email").value = email;
+        document.getElementById("available_balance").value = data.balance;
+        document.getElementById("trans_account_id").value = data.account_id;
+      });
+    </script>
+    </script>
   </body>
 </html>
