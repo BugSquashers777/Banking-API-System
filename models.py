@@ -25,6 +25,7 @@ class Account(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)  # User is now a foreign key on Account
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
+    account_type = db.Column(db.String(100), default="Savings")
     balance = db.Column(db.Float, default=0.0)
 
     user = db.relationship('User', backref='account_ref')
@@ -44,8 +45,8 @@ class Transaction(db.Model):
     account_id = db.Column(db.Integer, db.ForeignKey('account.account_id'), nullable=False)  # Account is now a foreign key on Transaction
     amount = db.Column(db.Float, nullable=False)
     action = db.Column(db.String(10), nullable=False)
-    date = db.Column(db.DateTime, default=lambda: datetime.now(datetime.UTC))
-    
+    date = db.Column(db.String(100), default=datetime.now)
+
     # This creates the reverse relationship from Transaction to Account
     account = db.relationship('Account', backref='transaction_ref')  # Unique backref here as well
 

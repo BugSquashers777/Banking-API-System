@@ -1,11 +1,22 @@
-// API URL
-const apiUrl = "http://localhost:5000"; // Change to your API URL if needed
+// Global API configuration
+const apiUrl = "http://127.0.0.1:5000";
 
+// Global fetch configuration
+const fetchConfig = {
+  mode: "cors",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    Origin: "http://127.0.0.1:5500",
+  },
+};
 // Create Account
 async function createAccount() {
   const name = document.getElementById("name").value;
   const email = document.getElementById("email").value;
   const balance = parseFloat(document.getElementById("initialBalance").value);
+  const account_type = document.getElementById("accountType").value;
 
   if (!name || !email || balance < 0) {
     document.getElementById("create_response").innerHTML =
@@ -17,8 +28,8 @@ async function createAccount() {
   try {
     const response = await fetch(`${apiUrl}/accounts`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, balance }),
+      ...fetchConfig,
+      body: JSON.stringify({ name, email, balance, account_type }),
     });
 
     if (!response.ok) {
@@ -46,7 +57,9 @@ async function getAccountInfo() {
     }
     const data = await response.json();
     const responseDiv = document.getElementById("account_info_response");
-    responseDiv.innerHTML = `Name: ${data.name}<br>Email: ${data.email}<br>Balance: ${data.balance}`;
+    responseDiv.innerHTML = `Name: ${data.name}<br>Email: ${
+      data.email
+    }<br>Balance: R${parseFloat(data.balance).toFixed(2)}`;
     responseDiv.className = "response success";
   } catch (err) {
     document.getElementById("account_info_response").innerHTML =
@@ -58,30 +71,54 @@ async function getAccountInfo() {
 
 // Process Transaction
 async function processTransaction(action) {
-  const accountId = document.getElementById("trans_account_id").value;
+  const account_id = document.getElementById("trans_account_id").value;
   const amount = parseFloat(document.getElementById("trans_amount").value);
+  const email = localStorage.getItem("email");
+  const date = new Date().toISOString().split("T")[0];
+
+  // Validate inputs
+  if (!amount || amount <= 0) {
+    document.getElementById("transaction_response").innerHTML =
+      "Please enter a valid amount greater than 0";
+    document.getElementById("transaction_response").className =
+      "response error";
+    return;
+  }
 
   try {
     const response = await fetch(`${apiUrl}/transactions/${action}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ account_id: accountId, amount }),
+      ...fetchConfig,
+      body: JSON.stringify({
+        account_id: parseInt(account_id),
+        amount: parseFloat(amount),
+        email: email,
+        date: date,
+      }),
     });
-    const data = await response.json();
 
-    if (data[1] === 200) {
-      const responseDiv = document.getElementById("transaction_response");
-      responseDiv.innerHTML = `${
-        action.charAt(0).toUpperCase() + action.slice(1)
-      } successful! New Balance: ${data[0].balance}`;
-      responseDiv.className = "response success";
-    } else {
-      document.getElementById("transaction_response").innerHTML =
-        "Error:" + data.message;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.message || `HTTP error! status: ${response.status}`
+      );
     }
+
+    const data = await response.json();
+    const responseDiv = document.getElementById("transaction_response");
+    responseDiv.innerHTML = `${
+      action.charAt(0).toUpperCase() + action.slice(1)
+    } successful! New Balance: ${data[0].balance}`;
+    responseDiv.className = "response success";
+
+    // Update available balance display
+    document.getElementById("available_balance").value = data[0].balance;
+
+    // Clear amount input for next transaction
+    document.getElementById("trans_amount").value = "";
   } catch (err) {
     document.getElementById("transaction_response").innerHTML =
-      "Error: " + err.message;
+      "Error processing transaction: " + err.message;
     document.getElementById("transaction_response").className =
       "response error";
   }
@@ -89,51 +126,44 @@ async function processTransaction(action) {
 
 // Update Account
 async function updateAccount() {
-  // Get elements
-  const accountIdElement = document.getElementById("update_account_id");
-  const nameElement = document.getElementById("update_name");
-  const emailElement = document.getElementById("update_email");
-  const responseDiv = document.getElementById("update_response");
-
-  // Get values
-  const accountId = accountIdElement.value;
-  const name = nameElement.value;
-  const email = emailElement.value;
-
-  // Validate required fields
-  if (!accountId || !name || !email) {
-    responseDiv.innerHTML = "Please fill in all required fields";
-    responseDiv.className = "response error";
-    return;
-  }
-
   try {
-    const response = await fetch(
-      `${apiUrl}/accounts/${localStorage.getItem("email")}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
-      }
-    );
+    const email = document.getElementById("update_email").value;
+    const name = document.getElementById("update_name").value;
+
+    // Log the request details for debugging
+    console.log("Updating account:", { email, name });
+
+    const response = await fetch(`${apiUrl}/accounts/${email}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+      }),
+    });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(
+        errorData.message || `HTTP error! status: ${response.status}`
+      );
     }
 
     const data = await response.json();
-    localStorage.setItem("email", data.email);
+    document.getElementById("update_response").innerHTML =
+      "Account updated successfully";
+    document.getElementById("update_response").className = "response success";
 
-    const response_user = await fetch(`${apiUrl}/login/${email}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    responseDiv.innerHTML = `Account updated: ${data.name}, Email: ${data.email}`;
-    responseDiv.className = "response success";
+    // Refresh account data
+    await loadAccountData();
   } catch (err) {
-    responseDiv.innerHTML = "Error updating account: " + err.message;
-    responseDiv.className = "response error";
+    console.error("Update error:", err);
+    document.getElementById("update_response").innerHTML =
+      "Error updating account: " + err.message;
+    document.getElementById("update_response").className = "response error";
   }
 }
 
@@ -173,9 +203,7 @@ async function userRegister() {
   try {
     const response = await fetch(`${apiUrl}/login`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      ...fetchConfig,
       body: JSON.stringify({
         username: username,
         email: email,
@@ -217,7 +245,7 @@ async function deleteAccount() {
   try {
     const response = await fetch(`${apiUrl}/accounts/${accountId}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      ...fetchConfig,
     });
 
     if (!response.ok) {
@@ -236,5 +264,78 @@ async function deleteAccount() {
     document.getElementById("delete_response").innerHTML =
       "Error deleting account: " + err.message;
     document.getElementById("delete_response").className = "response error";
+  }
+}
+
+async function getTransactionHistory() {
+  try {
+    const accountId = document.getElementById("trans_account_id").value;
+    const responseDiv = document.getElementById("transactions_response");
+    const tableBody = document.getElementById("transactions_list");
+
+    if (!accountId) {
+      throw new Error("Account ID not found");
+    }
+
+    const response = await fetch(
+      `${apiUrl}/transactions/history/${localStorage.getItem("email")}`,
+      {
+        method: "GET",
+        ...fetchConfig,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Clear existing content
+    tableBody.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="3" class="text-center">No transactions found</td>
+        </tr>
+      `;
+      return;
+    }
+
+    // Add each transaction to the table
+    data.forEach((transaction) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${transaction.date}</td>
+        <td>${
+          transaction.action.charAt(0).toUpperCase() +
+          transaction.action.slice(1)
+        }</td>
+        <td class="${
+          transaction.action === "deposit" ? "text-success" : "text-danger"
+        }">
+          ${
+            transaction.action === "deposit" ? "+" : "-"
+          }R${transaction.amount.toFixed(2)}
+        </td>
+      `;
+      tableBody.appendChild(row);
+    });
+
+    responseDiv.innerHTML = "";
+    responseDiv.className = "response success";
+  } catch (err) {
+    console.error("Transaction error:", err);
+    const responseDiv = document.getElementById("transactions_response");
+    responseDiv.innerHTML = "Error fetching transactions: " + err.message;
+    responseDiv.className = "response error";
+
+    const tableBody = document.getElementById("transactions_list");
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="3" class="text-center">Error loading transactions</td>
+      </tr>
+    `;
   }
 }

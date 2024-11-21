@@ -8,12 +8,20 @@ from controllers import create_account, update_account, delete_account, get_acco
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///accounts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['CORS_HEADERS'] = 'Content-Type'
+CORS(app, 
+     resources={r"/*": {
+         "origins": "http://127.0.0.1:5500",
+         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         "allow_headers": ["Content-Type", "Authorization"],
+         "supports_credentials": True
+     }}
+)
+
 bcrypt = Bcrypt(app)
 db.init_app(app)
 create_db_if_not_exists(app)
 api = Api(app)
-# Enable CORS for all routes
-CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Define Argument Parsers
 # transactions_args = reqparse.RequestParser()
@@ -42,7 +50,8 @@ class Transactions(Resource):
         email = data["email"]
         amount = data["amount"]
         account_id = data["account_id"]
-        return process_transaction(action, email, amount, account_id)
+        date = data["date"]
+        return process_transaction(action, email, amount, account_id, date)
     def get(self, email):
         return get_transactions(email)
 
