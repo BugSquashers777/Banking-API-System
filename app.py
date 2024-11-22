@@ -31,21 +31,28 @@ api = Api(app)
 # transactions_args.add_argument("email", type=str, help="Email is required.", required=True)
 
 class Accounts(Resource):
+
+
     def get(self, email):
         return get_account(email)  # Delegate to controller
+    
 
     def post(self):
         data = request.get_json()
         return create_account(data)
+    
 
     def put(self, email):
         data = request.get_json()
         return update_account(email, data)
+    
 
     def delete(self, email):
         return delete_account(email)
 
 class Transactions(Resource):
+
+
     def post(self, action):
         data = request.get_json()
         email = data["email"]
@@ -53,6 +60,8 @@ class Transactions(Resource):
         account_id = data["account_id"]
         date = data["date"]
         return process_transaction(action, email, amount, account_id, date)
+    
+
     def get(self, email):
         return get_transactions(email)
 
@@ -60,6 +69,8 @@ class Auth(Resource):
     def put(self, email):
         data = request.get_json()
         return update_login_account(email, data)
+    
+
     def post(self):
         data = request.get_json()
 
@@ -70,6 +81,8 @@ class Auth(Resource):
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
             data['password'] = hashed_password
         return create_login_account(data)
+    
+    
     def get(self):
         args = request.args
         hashed_password = login_validation(args)
@@ -83,6 +96,7 @@ class Auth(Resource):
                 'message': 'Login successful'}, 200
         else:
             return {'message': 'Invalid password'}, 401
+        
 
 api.add_resource(Auth, "/login", "/register", "/login/<string:email>")
 api.add_resource(Accounts, "/accounts", "/accounts/<string:email>")
