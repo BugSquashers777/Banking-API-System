@@ -19,6 +19,7 @@ def create_login_account(data):
         return {'message': 'Email already exists'}, 400
     
     
+    
     user_account = User(
         username=data['username'],
         email=data['email'],
@@ -39,6 +40,7 @@ def create_login_account(data):
         return jsonify({'message': 'An error occurred while saving the account'}, 500)
 
 def login_validation(data):
+    
     
     if not data or 'username' not in data or 'password' not in data:
         return {'message': 'Missing required fields: username and password required'}, 400

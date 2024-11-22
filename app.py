@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_bcrypt import Bcrypt
+from flask_bcrypt import Bcrypt
 from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
 from models import db,create_db_if_not_exists
@@ -61,6 +62,13 @@ class Auth(Resource):
         return update_login_account(email, data)
     def post(self):
         data = request.get_json()
+        if not data or 'password' not in data or 'email' not in data or 'username' not in data:
+            return {'message': 'Missing required fields: username, email and password required'}, 400
+        else:
+            password = data['password']
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+            data['password'] = hashed_password
+        print(data)
         if not data or 'password' not in data or 'email' not in data or 'username' not in data:
             return {'message': 'Missing required fields: username, email and password required'}, 400
         else:
