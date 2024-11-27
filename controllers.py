@@ -9,7 +9,7 @@ def get_account(email):
     return {
         'account_id': account.account_id,
         'name': account.name,
-        'email': account.email,
+        'email': email,
         'balance': account.balance
     }, 200
 
@@ -19,7 +19,7 @@ def create_login_account(data):
         return {'message': 'Email already exists'}, 400
     
     
-    
+    print(data)
     user_account = User(
         username=data['username'],
         email=data['email'],
@@ -84,25 +84,24 @@ def create_account(data):
     account = Account(
         name=data['name'],
         user_id=user_id,
-        email=data['email'],
         account_type=data['account_type'],
         balance=initial_balance
     )
-    
+    print(account.name,account.account_id)
     db.session.add(account)
     try:
         db.session.commit()
         return {
             'account_id': account.account_id,
             'name': account.name,
-            'email': account.email,
             'balance': account.balance,
             'account_type': account.account_type,
             'message': 'Account created successfully'
         }, 201
-    except Exception:
+    except Exception as e:
         db.session.rollback()
-        return {'message': 'An error occurred while saving the account'}, 500
+        print(e)
+        return {'message': f'An error occurred while saving the account'}, 500
 
 
 def update_account(email, data):
@@ -123,7 +122,7 @@ def update_account(email, data):
         return {
             'account_id': account.account_id,
             'name': account.name,
-            'email': account.email,
+            'email': email,
             'balance': account.balance,
             'message': 'Account updated successfully'
         }, 201

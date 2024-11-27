@@ -34,7 +34,7 @@ class Accounts(Resource):
 
 
     def get(self, email):
-        return get_account(email)  # Delegate to controller
+        return get_account(email) 
     
 
     def post(self):
@@ -73,7 +73,6 @@ class Auth(Resource):
 
     def post(self):
         data = request.get_json()
-
         if not data or 'password' not in data or 'email' not in data or 'username' not in data:
             return {'message': 'Missing required fields: username, email and password required'}, 400
         else:
